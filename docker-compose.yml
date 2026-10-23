@@ -1,0 +1,37 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: library
+      POSTGRES_PASSWORD: library
+      POSTGRES_DB: library
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U library"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  api:
+    image: php:8.2-cli-alpine
+    ports:
+      - "8000:8000"
+    volumes:
+      - ../test-manager-library-3239137-api:/app
+    working_dir: /app/public
+    command: php -S 0.0.0.0:8000
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_NAME: library
+      DB_USER: library
+      DB_PASSWORD: library
+
+volumes:
+  postgres_data:
